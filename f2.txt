@@ -28,3 +28,61 @@ node('built-in')
         }
         
 }
+
+
+
+
+
+
+
+
+Declarativepipeline
+
+
+pipeline
+{
+    agent any 
+    stages
+    {
+        stage('contdownload')
+        {
+            steps
+            {
+                git 'https://github.com/saiteja6301/maven.git'
+            }
+        }
+         stage('contbuild')
+        {
+            steps
+            {
+                sh 'mvn package'
+            }
+        }
+         stage('contdeployment')
+        {
+            steps
+            {
+               deploy adapters: [tomcat9(credentialsId: '512976cb-e580-4b9a-a8eb-c97961b4f35a', path: '', url: 'http://172.31.17.128:8080')], contextPath: 'testapp1', war: '**/*.war'
+            }
+        }
+        stage('conttesting')
+        {
+            steps
+            {
+                git 'https://github.com/intelliqittrainings/FunctionalTesting.git'
+                
+                sh 'java -jar /var/lib/jenkins/workspace/Declarativepipeline/testing.jar'
+            }
+        }
+        stage('contdelivery')
+        {
+            steps
+            {
+               deploy adapters: [tomcat9(credentialsId: '512976cb-e580-4b9a-a8eb-c97961b4f35a', path: '', url: 'http://172.31.22.117:8080')], contextPath: 'prodapp', war: '**/*.war'
+            }
+        }
+        
+        
+        
+    }
+}
