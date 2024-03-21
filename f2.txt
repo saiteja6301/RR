@@ -218,5 +218,88 @@ pipeline
         
         
     }
-}  
-     
+} 
+
+
+
+
+
+
+
+
+
+
+
+
+ExceptionHandling code for Scriptedpipeline
+
+
+
+
+ 
+  node('built-in')
+{
+  stage('contdownload')
+    {
+      try
+        {
+           git 'https://github.com/saiteja6301/maven.git'
+         }
+         catch(Exception e1)
+        {
+            mail bcc: '', body: 'jenkins is unable to download the maven', cc: '', from: '', replyTo: '', subject: 'download failed', to: 'git.admin@gmail.com'
+             
+        }
+    
+    }
+    stage('contbuild')
+     {
+       try
+       {
+           sh 'mvn package'
+       }
+       catch(Exception e2)
+       {
+           mail bcc: '', body: 'jenkins is unable to build artifact', cc: '', from: '', replyTo: '', subject: 'build failed', to: 'qa.team@gmail.com'
+       }
+    }
+    stage('contdeployment')
+      {
+        try
+        {
+            deploy adapters: [tomcat9(credentialsId: '512976cb-e580-4b9a-a8eb-c97961b4f35a', path: '', url: 'http://172.31.17.128:8080')], contextPath: 'testapp', war: '**/*.war'
+        }
+        catch(Exception e3)
+        {
+            mail bcc: '', body: 'jenkins is unable to deploy the maven code', cc: '', from: '', replyTo: '', subject: 'Deployment failed', to: 'middleware.team@gmail.com'
+        }
+        
+      }
+      stage('conttesting')
+      {
+           try
+           {
+                git 'https://github.com/intelliqittrainings/FunctionalTesting.git'
+                sh 'java -jar /var/lib/jenkins/workspace/scriptedpipeline2/testing.jar'
+    
+           }
+           catch(Exception e4)
+           {
+               mail bcc: '', body: 'jenkins is unable to run the selenium code ', cc: '', from: '', replyTo: '', subject: 'testing failed', to: 'testing.team@gmail.com'
+           }
+      }
+      stage('contdelivery')
+      {
+          try
+          {
+              deploy adapters: [tomcat9(credentialsId: '512976cb-e580-4b9a-a8eb-c97961b4f35a', path: '', url: 'http://172.31.22.117:8080')], contextPath: 'prodapp', war: '**/*.war'
+          }
+          catch(Exception e5)
+          {
+              mail bcc: '', body: 'jenkins is unable to deploy the code in prod server', cc: '', from: '', replyTo: '', subject: 'deployment failed', to: 'delivery.team@gmail.com'
+          }
+      }
+      
+}
+
+       
