@@ -86,3 +86,137 @@ pipeline
         
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+   ExceptionHandling code for Declarative pipeline
+
+
+
+
+
+pipeline
+{
+    agent any 
+    stages
+    {
+        stage('contdownload')
+        {
+            steps
+            {
+                script
+                {
+                    try
+                    {
+                       git 'https://github.com/saiteja6301/maven.git'   
+                    }
+                    catch(Exception e1)
+                    {
+                        mail bcc: '', body: 'Jenkins is unable to download from github', cc: '', from: '', replyTo: '', subject: 'download failed', to: 'git.admin@gmail.com'
+                        
+                        exit(1)
+                     }
+                }
+            
+            }
+        }
+         stage('contbuild')
+        {
+            steps
+            {
+                script
+                {
+                    try
+                    {
+                         sh 'mvn package'
+                    }
+                    catch(Exception e2)
+                    {
+                        mail bcc: '', body: 'Jenkins is unable to create the artifact', cc: '', from: '', replyTo: '', subject: 'build failed', to: 'dev.team@gmail.com'
+                        
+                        exit(1)
+                    }
+                }
+                
+            }
+        }
+         stage('contdeployment')
+        {
+            steps
+            {
+               script
+                {
+                     try
+                     
+                      {
+                        deploy adapters: [tomcat9(credentialsId: '512976cb-e580-4b9a-a8eb-c97961b4f35a', path: '', url: 'http://172.31.17.128:8080')], contextPath: 'testapp1', war: '**/*.war' 
+                      }
+                      catch(Exception e3)
+                      {
+                        mail bcc: '', body: 'Jenkins is unable to deploy into tomcat on qaservers', cc: '', from: '', replyTo: '', subject: 'Deployment failed', to: 'middleware.team@gmail.com'
+                         exit(1)
+                       }
+                }
+                
+               
+            }
+        }
+        stage('conttesting')
+        {
+            steps
+            {
+                script
+                {
+                    try
+                    {
+                         git 'https://github.com/intelliqittrainings/FunctionalTesting.git'
+                
+                         sh 'java -jar /var/lib/jenkins/workspace/Declarativepipeline/testing.jar'
+                    }
+                     catch(Exception e4)
+                     
+                    {
+                        mail bcc: '', body: 'selinium testing failed', cc: '', from: '', replyTo: '', subject: 'testing failed', to: 'qa.team@gmail.com'
+                        exit(1)
+                    }
+                }
+               
+            }
+        }
+        stage('contdelivery')
+        {
+            steps
+            {
+                script
+                {
+                    
+                
+                    try
+                       {
+                         deploy adapters: [tomcat9(credentialsId: '512976cb-e580-4b9a-a8eb-c97961b4f35a', path: '', url: 'http://172.31.22.117:8080')], contextPath: 'prodapp', war: '**/*.war' 
+                        }
+                         catch(Exception e5)
+                        {
+                            mail bcc: '', body: 'Jenkins is unable to deploy into tomcat on prodservers', cc: '', from: '', replyTo: '', subject: 'deployment failed', to: 'delivery.team@gmail.com'
+                            
+                        }
+                    
+                }
+               
+            }
+        }
+        
+        
+        
+    }
+}  
+     
